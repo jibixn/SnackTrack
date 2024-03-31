@@ -216,7 +216,6 @@ class _LoginscreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           login();
-                          Navigator.of(context).pushNamed('/home');
                         },
                         child: Text(
                           "LOGIN",
