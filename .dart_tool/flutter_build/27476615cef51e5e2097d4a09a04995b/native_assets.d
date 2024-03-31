@@ -1,0 +1,1 @@
+ /Users/ananthakrishnan/Documents/Anandu/Apps/Flutter/jibin/SnackTrack/.dart_tool/flutter_build/27476615cef51e5e2097d4a09a04995b/native_assets.yaml: 
