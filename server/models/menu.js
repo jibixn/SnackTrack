@@ -8,6 +8,9 @@ const menuSchema = mongoose.Schema({
     description: {
         type: String
     },
+    img:{
+        type:String,
+    },
     category: {
         type: String
     },
@@ -21,5 +24,4 @@ const menuSchema = mongoose.Schema({
     }
 });
 
-const Menu = mongoose.model("Menu", menuSchema);
-module.exports = Menu;
+module.exports = mongoose.models.Menu || mongoose.model("Menu", menuSchema);

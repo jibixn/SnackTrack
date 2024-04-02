@@ -5,9 +5,9 @@ const Menu = require('../models/menu');
 menuRouter.post("/api/menu", async (req, res) => {
     try {
         const menuDetails = {
-            name: "Bread Roast",
+            name: "Idiyappam",
             description: "",
-            category: "Snacks",
+            category: "Lunch",
             price: 8,
             availability: true
         };
