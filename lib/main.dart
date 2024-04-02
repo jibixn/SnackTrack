@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:snack_track/dash.dart';
-import 'package:snack_track/login.dart';
+import 'dash.dart';
+import 'login.dart';
+import 'screen_main_page.dart';
 
 void main(){
   runApp(MyApp());
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       ),
       home: LoginScreen(),
       routes: {
-        '/home':(context)=>MainDash(),
+        '/home':(context)=>ScreenMainPage(),
         '/login':(context)=>LoginScreen(),
       }
     );
