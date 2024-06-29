@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 class Profile extends StatelessWidget {
-  const Profile({super.key});
+  const Profile({super.key, this.showEditButton = true});
 
+  final bool showEditButton;
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
+    const int itemCount = 10; //Recent order count
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -37,7 +38,9 @@ class Profile extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        SizedBox(height: screenHeight * 0.035),
+                        SizedBox(height: screenHeight * 0.005),
+                        if (!showEditButton)
+                          SizedBox(height: screenHeight * 0.016),
                         Row(
                           children: [
                             SizedBox(width: screenWidth * 0.39),
@@ -50,13 +53,21 @@ class Profile extends StatelessWidget {
                               ),
                             ),
                             SizedBox(width: screenWidth * 0.22),
-                            const Icon(
-                              Icons.edit_square,
-                              color: Colors.white,
-                            ),
+                            if (showEditButton)
+                              IconButton(
+                                onPressed: () {
+                                  //edit details
+                                },
+                                icon: const Icon(
+                                  Icons.edit_square,
+                                  color: Colors.white,
+                                ),
+                              )
                           ],
                         ),
-                        SizedBox(height: screenHeight * 0.05),
+                        SizedBox(height: screenHeight * 0.034),
+                        if (!showEditButton)
+                          SizedBox(height: screenHeight * 0.016),
                         Container(
                           width: screenWidth * 0.25,
                           height: screenWidth * 0.25,
@@ -178,96 +189,102 @@ class Profile extends StatelessWidget {
               height: screenHeight * 0.35,
               child: ListView.builder(
                 physics: const ClampingScrollPhysics(),
-                itemCount: 10,
+                itemCount: itemCount + 1,
                 itemBuilder: (context, index) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: screenHeight * 0.01,
-                      horizontal: screenWidth * 0.05,
-                    ),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: screenHeight * 0.1,
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 226, 226, 226),
-                            borderRadius: BorderRadius.circular(20),
+                  return index < itemCount
+                      ? Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: screenHeight * 0.01,
+                            horizontal: screenWidth * 0.05,
                           ),
-                        ),
-                        Positioned(
-                          top: screenHeight * 0.01,
-                          left: screenWidth * 0.02,
-                          child: Row(
+                          child: Stack(
                             children: [
                               Container(
-                                height: screenHeight * 0.075,
-                                width: screenWidth * 0.18,
+                                height: screenHeight * 0.1,
                                 decoration: BoxDecoration(
-                                  color: Colors.black,
+                                  color:
+                                      const Color.fromARGB(255, 226, 226, 226),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
-                              SizedBox(width: screenWidth * 0.03),
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Dosa & Sambar',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                      fontFamily: 'Inter',
+                              Positioned(
+                                top: screenHeight * 0.01,
+                                left: screenWidth * 0.02,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      height: screenHeight * 0.075,
+                                      width: screenWidth * 0.18,
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    SizedBox(width: screenWidth * 0.03),
+                                    const Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Dosa & Sambar',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                            fontFamily: 'Inter',
+                                          ),
+                                        ),
+                                        Text(
+                                          '11/04/2024',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                Color.fromARGB(255, 92, 92, 92),
+                                          ),
+                                        ),
+                                        Text(
+                                          '₹ 30',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color:
+                                                Color.fromARGB(255, 50, 50, 50),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  height: screenHeight * 0.035,
+                                  width: screenWidth * 0.25,
+                                  decoration: const BoxDecoration(
+                                    color: Color.fromARGB(255, 50, 50, 50),
+                                    borderRadius: BorderRadius.only(
+                                      bottomRight: Radius.circular(20),
+                                      topLeft: Radius.circular(20),
                                     ),
                                   ),
-                                  Text(
-                                    '11/04/2024',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 92, 92, 92),
+                                  child: const Center(
+                                    child: Text(
+                                      'BREAKFAST',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
-                                  Text(
-                                    '₹ 30',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Color.fromARGB(255, 50, 50, 50),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            height: screenHeight * 0.035,
-                            width: screenWidth * 0.25,
-                            decoration: const BoxDecoration(
-                              color: Color.fromARGB(255, 50, 50, 50),
-                              borderRadius: BorderRadius.only(
-                                bottomRight: Radius.circular(20),
-                                topLeft: Radius.circular(20),
-                              ),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'BREAKFAST',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                        )
+                      : Container(height: screenHeight * 0.10);
                 },
               ),
             ),
