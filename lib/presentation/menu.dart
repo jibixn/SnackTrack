@@ -66,7 +66,6 @@ class _ScreenInventoryState extends State<ScreenInventory> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
 
