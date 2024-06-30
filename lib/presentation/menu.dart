@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ScreenInventory extends StatefulWidget {
-  const ScreenInventory({super.key});
+class Menu extends StatefulWidget {
+  const Menu({super.key});
 
   @override
-  State<ScreenInventory> createState() => _ScreenInventoryState();
+  State<Menu> createState() => _MenuState();
 }
 
-class _ScreenInventoryState extends State<ScreenInventory> {
+class _MenuState extends State<Menu> {
   int _totalCount = 0, _catIndex = 0, _menuCount = 12;
   num _totalPrice = 0;
   String _searchText = '';
@@ -65,6 +65,7 @@ class _ScreenInventoryState extends State<ScreenInventory> {
     });
   }
 
+  @override
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
