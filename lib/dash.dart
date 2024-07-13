@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:snack_track/Drawer.dart';
+
 
 class MainDash extends StatelessWidget {
   const MainDash({super.key});
@@ -11,7 +11,7 @@ class MainDash extends StatelessWidget {
     double ScreenWidth =MediaQuery.of(context).size.width;
     String name ='';
     return  Scaffold(
-      drawer: Drawer_Menu(),
+      
       appBar: AppBar(
         title: Text(
           'Welcome Back,'+name,

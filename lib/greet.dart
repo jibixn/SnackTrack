@@ -9,32 +9,43 @@ class GreetWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const SizedBox(
-            width: 30,
-          ),
-          Container(
-            width: 60,
-            height: 60,
-            decoration:
-                const BoxDecoration(color: primaryColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 15),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            
             children: [
-              Text(
-                'Hi, User!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
+              const SizedBox(
+                width: 30,
               ),
-              Text("Let's Grab your Food!",
-                  style:
-                      TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))
+              Container(
+                width: 60,
+                height: 60,
+                decoration:
+                    const BoxDecoration(color: primaryColor, shape: BoxShape.circle),
+                child: Image.asset('assets/profile.webp',fit: BoxFit.fill,),
+              ),
+              const SizedBox(width: 15),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hi, User!',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text("Let's Grab your Food!",
+                      style:
+                          TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))
+                ],
+              ),
+              
             ],
-          )
+          ),
+          IconButton(onPressed: (){
+            Navigator.of(context).pushNamed('/login');
+          }, icon:Icon(Icons.exit_to_app))
         ],
       ),
     );

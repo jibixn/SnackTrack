@@ -12,6 +12,7 @@ class BottomNavigationWidget extends StatelessWidget {
       valueListenable: indexChangeNotifier,
       builder: (context, int newIndex, _) {
         return Container(
+          padding: EdgeInsets.only(bottom: 8),
           decoration: const BoxDecoration(
             boxShadow: [
               BoxShadow(color: Colors.grey, spreadRadius: 0, blurRadius: 10),
@@ -38,13 +39,10 @@ class BottomNavigationWidget extends StatelessWidget {
                       icon: Icon(Icons.home),
                       label: 'Home',
                     ),
+                    
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.favorite),
-                      label: 'Order',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.shopping_cart),
-                      label: 'Inventory',
+                      icon: Icon(Icons.person),
+                      label: 'Profile',
                     ),
                   ])),
         );
