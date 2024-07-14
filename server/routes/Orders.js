@@ -3,7 +3,7 @@ const Orderrouter = express.Router();
 const Order = require('../models/Order');
 
 
-Orderrouter.get('/orders', async (req, res) => {
+Orderrouter.get('/api/orders', async (req, res) => {
   const userId = req.user._id;
   try {
   
