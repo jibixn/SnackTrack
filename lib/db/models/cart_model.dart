@@ -11,17 +11,22 @@ class cartModel{
 
 
   @HiveField(1)
-  String item;
+  String Id;
 
 
   @HiveField(2)
-  String price;
+  String item;
+
 
   @HiveField(3)
+  String price;
+
+  @HiveField(4)
   String quantity;
   cartModel(
     {
       this.key,
+      required this.Id,
       required this.item,
       required this.price,
       required this.quantity

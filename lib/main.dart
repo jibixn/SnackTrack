@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:snack_track/cart.dart';
 import 'package:snack_track/db/models/cart_model.dart';
+import 'package:snack_track/SlidingButton.dart';
 import 'dash.dart';
 import 'login.dart';
 import 'screen_main_page.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/home':(context)=>ScreenMainPage(),
         '/cart':(context)=>CartPage(),
         '/login':(context)=>LoginScreen(),
+        '/test':(context)=>SlidingButtonExample(),
       }
     );
   

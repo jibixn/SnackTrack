@@ -1,7 +1,76 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class Profile extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+
+class Profile extends StatefulWidget {
   const Profile({super.key});
+
+  @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+
+  String token='';
+  String Id='';
+  String name='';
+
+  List OrderList =[];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getToken();
+  }
+
+  Future<void> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token')!;
+    Id = prefs.getString('id')!;
+    name=prefs.getString('name')!;
+    getOrders();
+  }
+
+  Future <void> getOrders() async{
+    String APIurl = "http://localhost:3000/orders";
+    try {      
+      
+      final response = await http.get(Uri.parse(APIurl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Userid':Id
+            },
+          );
+          
+          print(response.statusCode);
+          print(response.body);      
+
+      if (response.statusCode == 200) {
+        // var jsonResponse = json.decode(response.body);
+        // OrderList = jsonResponse['menu']
+        //     .where((item) => item['category'] == cat)
+        //     .toList();
+
+        
+        // for (var item in NewMenuItems) {
+        //   item['count'] = item['count'] ?? 0;
+        // }
+
+        // if (NewMenuItems.isNotEmpty) {
+        //   setState(() {
+        //     _filteredMenuItems = NewMenuItems;
+        //   });
+        // }
+      } else {
+        print('bad response : ${response.statusCode}');
+      }
+    } catch (e) {
+      print('exception entered : $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

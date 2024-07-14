@@ -18,9 +18,10 @@ class cartModelAdapter extends TypeAdapter<cartModel> {
     };
     return cartModel(
       key: fields[0] as int?,
-      item: fields[1] as String,
-      price: fields[2] as String,
-      quantity: fields[3] as String,
+      Id: fields[1] as String,
+      item: fields[2] as String,
+      price: fields[3] as String,
+      quantity: fields[4] as String,
     );
   }
 

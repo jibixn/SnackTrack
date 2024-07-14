@@ -59,7 +59,8 @@ class _MyWidgetState extends State<ScreenHome> {
 
 
 
-  choose_menu(String cat) async {
+Future<void>  choose_menu(String cat) async {
+    _totalCount=0;
     try {
       final response = await http.get(Uri.parse('http://localhost:3000/api/getmenu'));
       print(response.statusCode);
@@ -119,10 +120,10 @@ class _MyWidgetState extends State<ScreenHome> {
                     int n=_filteredMenuItems!.length;
                     for(int i=0;i<n;i++){
                       if(_filteredMenuItems![i]['count']>0){
-                        final Item = cartModel(item: _filteredMenuItems![i]['name'].toString(), price: _filteredMenuItems![i]['price'].toString(), quantity: _filteredMenuItems![i]['count'].toString());
+                        final Item = cartModel(Id:_filteredMenuItems![i]['_id'].toString(),item:_filteredMenuItems![i]['name'].toString(), price: _filteredMenuItems![i]['price'].toString(), quantity: _filteredMenuItems![i]['count'].toString());
                         addItem(Item);
                       }
-                    }
+                    }                    
                     Navigator.of(context).pushNamed('/cart');
                   },
                   child: Text(
@@ -135,7 +136,7 @@ class _MyWidgetState extends State<ScreenHome> {
                   ),
                 ),
                 Icon(
-                  Icons.double_arrow,
+                  Icons.play_arrow,
                   color: Colors.white,
                   size: ScreenWidth*0.055,
                 ),

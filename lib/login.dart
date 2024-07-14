@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:ffi';
 import 'package:flutter/cupertino.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key? key}) : super(key: key);
@@ -19,6 +20,21 @@ class _LoginscreenState extends State<LoginScreen> {
 
   bool? check = true;
   var temp;
+
+
+  Future<void> saveToken(String token, String id, String name) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    await prefs.setString('id', id);  
+    await prefs.setString('name', name);
+    print("Data saved successfully");
+  } catch (e) {
+    print("Failed to save data: $e");
+  }
+}
+
+
 
   Future<void> login() async {
     String username = usernameController.text;
@@ -40,9 +56,11 @@ class _LoginscreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(response.body);
-
+        print(response.body);
         String token = jsonResponse['token'];
-
+        String Id = jsonResponse['_id'];
+        String name=jsonResponse['name'];
+        saveToken(token,Id,name);
         Navigator.of(context).pushNamed('/home');
       } else {
         showDialog(
