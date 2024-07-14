@@ -4,7 +4,8 @@ const Order = require('../models/Order');
 const Menu = require('../models/Menu'); 
 
 Orderrouter.get('/orders', async (req, res) => {
-  const userId = req.user._id;
+  const userId = req.headers['userid'];
+  console.log(userId)
   try {
     const orders = await Order.find({ user: userId });
 
