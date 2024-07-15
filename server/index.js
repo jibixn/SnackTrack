@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const authRouter =require('./routes/auth')
 const menuRouter = require('./routes/addMenu')
 const fetchMenuRouter = require('./routes/fetchMenu');
-const Orderrouter = require('./routes/Orders')
+const OrderRouter = require('./routes/Orders')
 
 
 const PORT = process.env.port || 3000;
@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(authRouter);
 app.use(menuRouter);
 app.use(fetchMenuRouter);
-app.use(Orderrouter);
+app.use(OrderRouter);
 
 
 const DB="mongodb+srv://snacktrackfisat:oRGkKdTHJPe9OyuR@snacktrack.ho4irqx.mongodb.net/?retryWrites=true&w=majority&appName=SnackTrack";
