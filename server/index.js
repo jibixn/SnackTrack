@@ -4,6 +4,7 @@ const authRouter =require('./routes/auth')
 const menuRouter = require('./routes/addMenu')
 const fetchMenuRouter = require('./routes/fetchMenu');
 const OrderRouter = require('./routes/Orders');
+const fetchEmpRouter=require('./routes/EmpList');
 
 
 const PORT = process.env.port || 3000;
@@ -14,6 +15,7 @@ app.use(authRouter);
 app.use(menuRouter);
 app.use(fetchMenuRouter);
 app.use(OrderRouter);
+app.use(fetchEmpRouter);
 
 
 const DB="mongodb+srv://snacktrackfisat:oRGkKdTHJPe9OyuR@snacktrack.ho4irqx.mongodb.net/?retryWrites=true&w=majority&appName=SnackTrack";
