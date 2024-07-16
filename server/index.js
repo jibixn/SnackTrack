@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const authRouter =require('./routes/auth')
 const menuRouter = require('./routes/addMenu')
 const fetchMenuRouter = require('./routes/fetchMenu');
-const OrderRouter = require('./routes/Orders')
+const OrderRouter = require('./routes/Orders');
 
 
 const PORT = process.env.port || 3000;
