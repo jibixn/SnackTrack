@@ -3,17 +3,54 @@ const Orderrouter = express.Router();
 const Order = require('../models/Order');
 const Menu = require('../models/Menu'); 
 
+// Orderrouter.get('/orders', async (req, res) => {
+//   const userId = req.headers['userid'];
+//   console.log(userId)
+//   try {
+//     const orders = await Order.find({ user: userId });
+
+//     const totalOrdersCount = orders.length;
+//     const totalExpenditure = orders.reduce((total, order) => total + order.totalPrice, 0);
+
+//     res.json({
+//       orders,
+//       totalOrdersCount,
+//       totalExpenditure
+//     });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+
 Orderrouter.get('/orders', async (req, res) => {
   const userId = req.headers['userid'];
-  console.log(userId)
+  console.log(userId);
+
   try {
-    const orders = await Order.find({ user: userId });
+    const orders = await Order.find({ user: userId }).populate('items.foodItem', 'name price category');
 
     const totalOrdersCount = orders.length;
     const totalExpenditure = orders.reduce((total, order) => total + order.totalPrice, 0);
 
+    const transformedOrders = orders.map(order => {
+      const orderObj = order.toObject();
+      return {
+        ...orderObj,
+        items: orderObj.items.map(item => ({
+          ...item,
+          foodItemName: item.foodItem ? item.foodItem.name : 'Unknown Item',
+          foodItemCategory: item.foodItem ? item.foodItem.category : 'Unknown Category',
+          foodItemId: item.foodItem ? item.foodItem._id : null,
+          foodItem: undefined  
+        }))
+      };
+    });
+
     res.json({
-      orders,
+      orders: transformedOrders,
       totalOrdersCount,
       totalExpenditure
     });
@@ -22,6 +59,8 @@ Orderrouter.get('/orders', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
 
 
 
