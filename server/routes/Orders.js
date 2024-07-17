@@ -1,6 +1,6 @@
 const express = require('express');
 const Orderrouter = express.Router();
-const Order = require('../models/Order');
+const Order = require('../models/order');
 const Menu = require('../models/menu'); 
 
 // Orderrouter.get('/orders', async (req, res) => {
