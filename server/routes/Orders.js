@@ -37,6 +37,7 @@ Orderrouter.get('/orders', async (req, res) => {
 
   
     const transformedOrders = orders.map(order => {
+      const orderObj = order.toObject();
       const orderDate = new Date(orderObj.orderTime);
       const format = orderDate.toLocaleDateString('en-GB', {
         day: '2-digit',
@@ -44,7 +45,6 @@ Orderrouter.get('/orders', async (req, res) => {
         year: '2-digit'
       });
   
-      const orderObj = order.toObject();
       return {
         ...orderObj,
         formatDate: format,
