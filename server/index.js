@@ -7,7 +7,7 @@ const OrderRouter = require('./routes/Orders');
 const fetchEmpRouter=require('./routes/EmpList');
 
 
-const PORT = process.env.port || 3000;
+const PORT = process.env.port || 3001;
 const app =express();
 
 app.use(express.json());
