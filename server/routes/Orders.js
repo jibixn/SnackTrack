@@ -35,10 +35,18 @@ Orderrouter.get('/orders', async (req, res) => {
     const totalOrdersCount = orders.length;
     const totalExpenditure = orders.reduce((total, order) => total + order.totalPrice, 0);
 
+    const orderDate = new Date(orderObj.orderTime);
+    const format = orderDate.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+
     const transformedOrders = orders.map(order => {
       const orderObj = order.toObject();
       return {
         ...orderObj,
+        formatDate: format,
         items: orderObj.items.map(item => ({
           ...item,
           foodItemName: item.foodItem ? item.foodItem.name : 'Unknown Item',
