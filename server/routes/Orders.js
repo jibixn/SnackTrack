@@ -1,7 +1,7 @@
 const express = require('express');
 const Orderrouter = express.Router();
 const Order = require('../models/Order');
-const Menu = require('../models/Menu'); 
+const Menu = require('../models/menu'); 
 
 // Orderrouter.get('/orders', async (req, res) => {
 //   const userId = req.headers['userid'];
