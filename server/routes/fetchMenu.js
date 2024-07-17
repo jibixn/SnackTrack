@@ -1,6 +1,6 @@
 const express = require('express');
 const fetchMenuRouter = express.Router();
-const Menu = require('../models/Menu');
+const Menu = require('../models/menu');
 
 fetchMenuRouter.get("/api/getmenu", async (req, res) => {
     try {
