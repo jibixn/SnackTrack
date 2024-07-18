@@ -10,7 +10,7 @@ const User= require('../models/User');
 
 authRouter.post("/api/Signup",async (req,res) =>{
     try{
-        const {name,username,password,department,role} = req.body;
+        const {name,img,username,password,department,role} = req.body;
 
 
         const existingUser=await User.findOne({username});
@@ -22,6 +22,7 @@ authRouter.post("/api/Signup",async (req,res) =>{
         const hashed = await bcryptjs.hash(password,8);
         let user = new User({
             name,
+            img,
             username,
             password:hashed,
             department,
