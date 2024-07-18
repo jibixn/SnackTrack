@@ -5,6 +5,9 @@ const menuSchema = mongoose.Schema({
         required: true,
         type: String
     },
+    img:{
+        type:String,
+    },
     description: {
         type: String
     },
