@@ -126,9 +126,10 @@ authRouter.post("/api/Signin",async (req,res) =>{
 
         const token = jwt.sign({id: user._id },"passwordKey");
         const role=user.role;
+        const image=user.img;
 
         
-        res.json({role,token,...user._doc});
+        res.json({role,token,img,...user._doc});
 
        
 
