@@ -129,7 +129,7 @@ authRouter.post("/api/Signin",async (req,res) =>{
         const image=user.img;
 
         
-        res.json({role,token,img,...user._doc});
+        res.json({role,token,image,...user._doc});
 
        
 
