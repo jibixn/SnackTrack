@@ -176,7 +176,8 @@ Orderrouter.get('/api/:userId/orders', async (req, res) => {
 Orderrouter.post('/api/Addorders', async (req, res) => {
   try {
     const { items } = req.body;
-    const userId = req.user._id;
+    const userId = req.headers['userid'];
+
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Invalid order items' });
