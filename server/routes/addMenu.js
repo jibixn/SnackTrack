@@ -4,14 +4,18 @@ const Menu = require('../models/menu');
 
 menuRouter.post("/api/menu", async (req, res) => {
     try {
+        const { name, description, img, category, price, availability, qty } = req.body;
+
         const menuDetails = {
-            name: "Idiyappam",
-            description: "",
-            category: "Lunch",
-            price: 8,
-            availability: true,
-            qty:5
-        };
+            name,
+            description,
+            img,
+            category,
+            price,
+            availability,
+            qty
+          };
+        
 
         const newMenuItem = new Menu(menuDetails);
         await newMenuItem.save();
