@@ -69,49 +69,53 @@ Orderrouter.get('/orders', async (req, res) => {
   }
 });
 
-Orderrouter.get('/api/recentOrders', async(req,res)=>{
-  try{
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+Orderrouter.get('/api/recentOrders', async (req, res) => {
+  try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const orders = await Order.find({
-        orderTime: { $gte: today, $lt: tomorrow }
-    });
-    const totalOrdersCount = orders.length;
-    const transformedOrders = orders.map(order => {
-      const orderObj = order.toObject();
-      const orderDate = new Date(orderObj.orderTime);
-      const format = orderDate.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit'
+      const orders = await Order.find({
+          orderTime: { $gte: today, $lt: tomorrow }
       });
-  
-      return {
-        ...orderObj,
-        formatDate: format,
-        items: orderObj.items.map(item => ({
-          ...item,
-          foodItemName: item.foodItem ? item.foodItem.name : 'Unknown Item',
-          foodItemCategory: item.foodItem ? item.foodItem.category : 'Unknown Category',
-          foodItemId: item.foodItem ? item.foodItem._id : null,
-          foodItem: undefined  
-        }))
-      };
-    });
 
-    res.json({
-      orders: transformedOrders,
-      totalOrdersCount,
-    });
+      const totalOrdersCount = orders.length;
 
+      const transformedOrders = await Promise.all(orders.map(async order => {
+          const orderObj = order.toObject();
+          const orderDate = new Date(orderObj.orderTime);
+          const format = orderDate.toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: '2-digit'
+          });
 
-  }catch(e){
-    res.status(500).json("Server Error");
+          const user = await User.findById(order.user);
+
+          return {
+              ...orderObj,
+              formatDate: format,
+              user: user ? user.name : null,
+              items: orderObj.items.map(item => ({
+                  ...item,
+                  foodItemName: item.foodItem ? item.foodItem.name : 'Unknown Item',
+                  foodItemCategory: item.foodItem ? item.foodItem.category : 'Unknown Category',
+                  foodItemId: item.foodItem ? item.foodItem._id : null,
+                  foodItem: undefined
+              }))
+          };
+      }));
+
+      res.json({
+          orders: transformedOrders,
+          totalOrdersCount,
+      });
+  } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: "Server Error" });
   }
-})
+});
 
 
 Orderrouter.get('/api/:userId/orders', async (req, res) => {
