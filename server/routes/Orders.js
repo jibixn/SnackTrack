@@ -2,7 +2,7 @@ const express = require('express');
 const Orderrouter = express.Router();
 const Order = require('../models/order');
 const Menu = require('../models/menu'); 
-
+const User = require('../models/User')
 // Orderrouter.get('/orders', async (req, res) => {
 //   const userId = req.headers['userid'];
 //   console.log(userId)
@@ -68,6 +68,56 @@ Orderrouter.get('/orders', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
+Orderrouter.get('/api/:userId/orders', async (req, res) => {
+
+  try {
+    const userId= req.params.userId;
+    const user = await User.findOne({userId});
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const orders = await Order.find({ user: userId }).populate('items.foodItem', 'name price category');
+
+    const totalOrdersCount = orders.length;
+    const totalExpenditure = orders.reduce((total, order) => total + order.totalPrice, 0);
+
+  
+    const transformedOrders = orders.map(order => {
+      const orderObj = order.toObject();
+      const orderDate = new Date(orderObj.orderTime);
+      const format = orderDate.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit'
+      });
+  
+      return {
+        ...orderObj,
+        formatDate: format,
+        items: orderObj.items.map(item => ({
+          ...item,
+          foodItemName: item.foodItem ? item.foodItem.name : 'Unknown Item',
+          foodItemCategory: item.foodItem ? item.foodItem.category : 'Unknown Category',
+          foodItemId: item.foodItem ? item.foodItem._id : null,
+          foodItem: undefined  
+        }))
+      };
+    });
+
+    res.json({
+      orders: transformedOrders,
+      totalOrdersCount,
+      totalExpenditure
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 
 
