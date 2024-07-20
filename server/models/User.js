@@ -25,7 +25,8 @@ const userSchema = mongoose.Schema({
         type:String
     },
     balance:{
-        type:Number  
+        type:Number, 
+        default:0 
     }
     
 });

@@ -29,7 +29,15 @@ Orderrouter.get('/orders', async (req, res) => {
   const userId = req.headers['userid'];
   console.log(userId);
 
+
+
   try {
+    const user = await User.findOne({ _id: userId });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const balance = user.balance;
     const orders = await Order.find({ user: userId }).populate('items.foodItem', 'name price category');
 
     const totalOrdersCount = orders.length;
@@ -48,6 +56,7 @@ Orderrouter.get('/orders', async (req, res) => {
       return {
         ...orderObj,
         formatDate: format,
+        balance,
         items: orderObj.items.map(item => ({
           ...item,
           foodItemName: item.foodItem ? item.foodItem.name : 'Unknown Item',
@@ -68,6 +77,10 @@ Orderrouter.get('/orders', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
+
+
 
 Orderrouter.get('/api/recentOrders', async (req, res) => {
   try {
@@ -117,9 +130,62 @@ Orderrouter.get('/api/recentOrders', async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Server Error" });
   }
+
 });
 
 
+//update order
+Orderrouter.put('/api/orders/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { action, updates } = req.body;
+
+    const order = await Order.findById(orderId).populate('user');
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.status !== 'pending') {
+      return res.status(400).json({ error: 'Only pending orders can be edited or confirmed' });
+    }
+
+    if (action === 'edit') {
+      Object.keys(updates).forEach(key => {
+        if (key !== '_id' && key !== 'status') {  
+          order[key] = updates[key];
+        }
+      });
+
+      await order.save();
+      res.json({ message: 'Order updated successfully', order });
+
+    } else if (action === 'confirm') {
+      const user=order.user;
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      user.balance+=order.totalPrice;
+      await user.save();
+
+      order.status = 'confirmed';
+      await order.save();
+      res.json({ message: 'Order confirmed successfully', order });
+
+    } else {
+      res.status(400).json({ error: 'Invalid action. Use "edit" or "confirm".' });
+    }
+
+  } catch (err) {
+    console.error('Error updating order:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+
+//user orders
 Orderrouter.get('/api/:userId/orders', async (req, res) => {
 
   try {
@@ -218,6 +284,42 @@ Orderrouter.post('/api/Addorders', async (req, res) => {
   }
 });
 
+
+
+
+
+Orderrouter.get('/api/daily-order-count', async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const dailyOrders = await Order.find({
+      createdAt: {
+        $gte: today,
+        $lt: tomorrow
+      }
+    });
+
+    const orderCount = dailyOrders.length;
+
+    const totalRevenue = dailyOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+
+  
+
+    res.json({
+      date: today.toISOString().split('T')[0],
+      orderCount,
+      totalRevenue,
+    });
+
+  } catch (err) {
+    console.error('Error fetching daily order count:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 

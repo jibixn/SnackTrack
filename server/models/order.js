@@ -30,7 +30,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'preparing', 'ready', 'delivered', 'cancelled'],
+    enum: ['pending','confirmed'],
     default: 'pending'
   },
   orderTime: {
@@ -40,6 +40,9 @@ const orderSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+
+
 
 const Order = mongoose.model("Order", orderSchema);
 
