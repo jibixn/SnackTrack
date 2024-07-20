@@ -5,7 +5,7 @@ const User = require('../models/User');
 
 fetchEmpRouter.get('/api/EmpList',async (req,res)=>{
     try{
-        const list=await User.find({});
+        const list=await User.find({role:"Faculty"});
         res.status(200).json({list:list});
 
     }catch(e){
