@@ -135,7 +135,7 @@ Orderrouter.get('/api/recentOrders', async (req, res) => {
 
 
 //update order
-router.put('/api/orders/:orderId', async (req, res) => {
+Orderrouter.put('/api/orders/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
     const { action, updates } = req.body;
