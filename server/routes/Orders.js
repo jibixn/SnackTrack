@@ -151,13 +151,20 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     
     if (action === 'edit') {
       if (updates.items) {
-        order.items = updates.items.map(item => ({
-          foodItem: item.foodItem,
-          quantity: item.quantity,
-          price: item.price
+        const updatedItems = await Promise.all(updates.items.map(async (item) => {
+          const menuItem = await Menu.findById(item.foodItemId);
+          if (!menuItem) {
+            throw new Error(`Menu item not found for ID: ${item.foodItemId}`);
+          }
+          return {
+            foodItem: item.foodItemId,
+            quantity: item.quantity,
+            price: menuItem.price
+          };
         }));
         
-        order.totalPrice = order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+        order.items = updatedItems;
+        order.totalPrice = updatedItems.reduce((total, item) => total + (item.price * item.quantity), 0);
       }
       
       ['user', 'orderTime', 'status'].forEach(key => {
@@ -191,7 +198,6 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
-
 
 
 //user orders
