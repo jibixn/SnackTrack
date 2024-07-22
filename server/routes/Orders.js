@@ -152,7 +152,7 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     if (action === 'edit') {
       if (updates.items) {
         const updatedItems = await Promise.all(updates.items.map(async (item) => {
-          if (!ObjectId.isValid(item.foodItemId)) {
+          if (!mongoose.Types.ObjectId.isValid(item.foodItemId)) {
             throw new Error(`Invalid foodItemId: ${item.foodItemId}`);
           }
           const menuItem = await Menu.findById(item.foodItemId);
@@ -160,7 +160,7 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
             throw new Error(`Menu item not found for ID: ${item.foodItemId}`);
           }
           return {
-            foodItem: menuItem._id, // Use the _id of the menu item
+            foodItem: menuItem._id,
             quantity: item.quantity,
             price: menuItem.price
           };
