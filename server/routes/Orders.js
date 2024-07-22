@@ -1,4 +1,6 @@
 const express = require('express');
+const mongoose = require('mongoose');
+
 const Orderrouter = express.Router();
 const Order = require('../models/order');
 const Menu = require('../models/menu'); 
@@ -151,23 +153,27 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     
     if (action === 'edit') {
       if (updates.items) {
-        const updatedItems = await Promise.all(updates.items.map(async (item) => {
-          if (!mongoose.Types.ObjectId.isValid(item.foodItemId)) {
-            throw new Error(`Invalid foodItemId: ${item.foodItemId}`);
+        let totalPrice = 0;
+        const orderItems = [];
+
+        for (let item of updates.items) {
+          const foodItem = await Menu.findById(item.foodItemId);
+          if (!foodItem) {
+            return res.status(400).json({ error: `Food item not found: ${item.foodItemId}` });
           }
-          const menuItem = await Menu.findById(item.foodItemId);
-          if (!menuItem) {
-            throw new Error(`Menu item not found for ID: ${item.foodItemId}`);
-          }
-          return {
-            foodItem: menuItem._id,
+
+          const itemTotal = foodItem.price * item.quantity;
+          totalPrice += itemTotal;
+
+          orderItems.push({
+            foodItem: item.foodItemId,
             quantity: item.quantity,
-            price: menuItem.price
-          };
-        }));
-        
-        order.items = updatedItems;
-        order.totalPrice = updatedItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            price: foodItem.price
+          });
+        }
+
+        order.items = orderItems;
+        order.totalPrice = totalPrice;
       }
       
       ['user', 'orderTime', 'status'].forEach(key => {
@@ -197,12 +203,6 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     }
   } catch (err) {
     console.error('Error updating order:', err);
-    if (err.name === 'CastError') {
-      return res.status(400).json({ error: 'Invalid ID format', details: err.message });
-    }
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ error: 'Validation error', details: err.message });
-    }
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
