@@ -152,12 +152,15 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     if (action === 'edit') {
       if (updates.items) {
         const updatedItems = await Promise.all(updates.items.map(async (item) => {
+          if (!ObjectId.isValid(item.foodItemId)) {
+            throw new Error(`Invalid foodItemId: ${item.foodItemId}`);
+          }
           const menuItem = await Menu.findById(item.foodItemId);
           if (!menuItem) {
             throw new Error(`Menu item not found for ID: ${item.foodItemId}`);
           }
           return {
-            foodItem: item.foodItemId,
+            foodItem: menuItem._id, // Use the _id of the menu item
             quantity: item.quantity,
             price: menuItem.price
           };
@@ -176,7 +179,6 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
       await order.save();
       res.json({ message: 'Order updated successfully', order });
     } else if (action === 'confirm') {
-      const User = mongoose.model('User');
       const user = await User.findById(order.user);
       
       if (!user) {
@@ -194,11 +196,16 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
       res.status(400).json({ error: 'Invalid action. Use "edit" or "confirm".' });
     }
   } catch (err) {
-    console.error('Error updating order:', err.message, err.stack);
+    console.error('Error updating order:', err);
+    if (err.name === 'CastError') {
+      return res.status(400).json({ error: 'Invalid ID format', details: err.message });
+    }
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: 'Validation error', details: err.message });
+    }
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
-
 
 //user orders
 Orderrouter.get('/api/:userId/orders', async (req, res) => {
