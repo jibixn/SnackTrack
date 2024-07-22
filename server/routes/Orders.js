@@ -135,11 +135,10 @@ Orderrouter.get('/api/recentOrders', async (req, res) => {
 
 
 //update order
-Orderrouter.put('/api/orders/:orderId', async (req, res) => {
+router.put('/api/orders/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
     const { action, updates } = req.body;
-
     const order = await Order.findById(orderId).populate('user');
 
     if (!order) {
@@ -151,37 +150,38 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
     }
 
     if (action === 'edit') {
-      Object.keys(updates).forEach(key => {
-        if (key !== '_id' && key !== 'status') {  
+      if (updates.items) {
+        order.items = updates.items;
+        
+        order.totalPrice = order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      }
+
+      ['user', 'orderTime', 'status'].forEach(key => {
+        if (updates[key] && key !== '_id') {
           order[key] = updates[key];
         }
       });
 
       await order.save();
       res.json({ message: 'Order updated successfully', order });
-
     } else if (action === 'confirm') {
-      const user=order.user;
+      const user = order.user;
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      user.balance+=order.totalPrice;
+      user.balance += order.totalPrice;
       await user.save();
-
       order.status = 'confirmed';
       await order.save();
       res.json({ message: 'Order confirmed successfully', order });
-
     } else {
       res.status(400).json({ error: 'Invalid action. Use "edit" or "confirm".' });
     }
-
   } catch (err) {
     console.error('Error updating order:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 
 
