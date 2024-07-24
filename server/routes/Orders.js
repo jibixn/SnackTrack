@@ -136,76 +136,113 @@ Orderrouter.get('/api/recentOrders', async (req, res) => {
 });
 
 
-//update order
+// update order
 Orderrouter.put('/api/orders/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { action, updates } = req.body;
-    const order = await Order.findById(orderId);
-    
+    const { action, items,isPaying,amt } = req.body;
+    const order = await Order.findById(orderId).populate('user', '-password');
+    const user = order.user;
+
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    
+
     if (order.status !== 'pending') {
       return res.status(400).json({ error: 'Only pending orders can be edited or confirmed' });
     }
-    
-    if (action === 'edit') {
-      if (updates.items) {
-        let totalPrice = 0;
-        const orderItems = [];
 
-        for (let item of updates.items) {
+    if (action === 'edit') {
+      if (items && Array.isArray(items)) {
+        const updatedItems = [];
+        let totalPrice = 0;
+
+        for (let item of items) {
           const foodItem = await Menu.findById(item.foodItemId);
           if (!foodItem) {
             return res.status(400).json({ error: `Food item not found: ${item.foodItemId}` });
           }
 
-          const itemTotal = foodItem.price * item.quantity;
+          const itemPrice = item.price || foodItem.price; 
+          const itemTotal = itemPrice * item.quantity;
           totalPrice += itemTotal;
 
-          orderItems.push({
+          updatedItems.push({
             foodItem: item.foodItemId,
             quantity: item.quantity,
-            price: foodItem.price
+            price: itemPrice,
+            foodItemName: foodItem.name,
+            foodItemCategory: foodItem.category
           });
         }
 
-        order.items = orderItems;
+        order.items = updatedItems;
         order.totalPrice = totalPrice;
       }
-      
-      ['user', 'orderTime', 'status'].forEach(key => {
-        if (updates[key] && key !== '_id') {
-          order[key] = updates[key];
-        }
-      });
-      
+      // user.balance += order.totalPrice;
+      // await user.save();
+      order.status = 'confirmed';
       await order.save();
-      res.json({ message: 'Order updated successfully', order });
+
+      // res.json({ message: 'Order updated successfully', order });
     } else if (action === 'confirm') {
-      const user = await User.findById(order.user);
-      
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
-      user.balance += order.totalPrice;
-      await user.save();
-      
+      // user.balance += order.totalPrice;
+      // await user.save();
       order.status = 'confirmed';
       await order.save();
-      
-      res.json({ message: 'Order confirmed successfully', order });
+      // res.json({ message: 'Order confirmed successfully', order });
     } else {
       res.status(400).json({ error: 'Invalid action. Use "edit" or "confirm".' });
     }
+
+
+    if(isPaying){
+      if(amt==order.totalPrice){
+        order.status='Paid';
+        await order.save();
+          
+      }
+      else if(amt<order.totalPrice){
+        let amountPending = order.totalPrice-amt;
+        user.balance+=amountPending;
+      }
+      else if(amt>order.totalPrice){
+        user.balance-=amt;
+        await user.save();
+        order.status = 'Paid';
+        await order.save();
+      }
+
+        await user.save();
+        order.status = 'Paid';
+        await order.save();
+    }
+    else{
+      user.balance += order.totalPrice;
+      await user.save();
+    }
+
+
+
+
+    res.json({ 
+      message: `Order ${action === 'edit' ? 'updated' : 'confirmed'} successfully${isPaying ? ' and paid' : ''}`, 
+      order 
+    });
+    
   } catch (err) {
     console.error('Error updating order:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
+
+
+
+
 
 //user orders
 Orderrouter.get('/api/:userId/orders', async (req, res) => {
@@ -343,6 +380,18 @@ Orderrouter.get('/api/daily-order-count', async (req, res) => {
   }
 });
 
+
+//pending orders
+Orderrouter.get('/api/pending',async (req,res)=>{
+  try{
+    const pending = await Order.find({status:'pending'});
+    res.status(200).json({pending:pending});
+
+
+  }catch(e){
+    res.status(500).json({ error: 'Server error' });
+  }
+})
 
 
 
