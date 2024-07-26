@@ -218,14 +218,18 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
 Orderrouter.put("/api/:userId/Payment", async (req, res) => {
   try {
     const { amount } = req.body;
-    const { userID } = req.params.userId;
+    const userId = req.params.userId;
 
-    const user = await User.findOne({ userID });
-    if (!user) {
+
+  const user = await User.findOne({ _id: userId });
+  
+  if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    user.balance -= amount;
+    user.balance = user.balance - amount;
     await user.save();
+    return res.status(200).json({ message: "Payment successful", newBalance: user.balance });
+
   } catch (e) {
     res.status(500).json({ message: "ServerError" + e });
   }
