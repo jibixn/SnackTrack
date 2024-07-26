@@ -240,7 +240,6 @@ Orderrouter.put('/api/orders/:orderId', async (req, res) => {
 });
 
 //payment
-
 Orderrouter.put('/api/:userId/Payment',async(req,res)=>{
   try{
 
@@ -271,7 +270,7 @@ Orderrouter.get('/api/:userId/orders', async (req, res) => {
 
   try {
     const userId= req.params.userId;
-    const user = await User.findOne({userId});
+    const user = await User.findOne({_id:userId});
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -279,8 +278,22 @@ Orderrouter.get('/api/:userId/orders', async (req, res) => {
 
     const totalOrdersCount = orders.length;
     const totalExpenditure = orders.reduce((total, order) => total + order.totalPrice, 0);
+    const balance = user.balance;
 
   
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const monthlyOrders = orders.filter(order => {
+      const orderDate = new Date(order.orderTime);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+    });
+
+    const monthlyOrderCount = monthlyOrders.length;
+    const monthlyExpenditure = monthlyOrders.reduce((total, order) => total + order.totalPrice, 0);
+
     const transformedOrders = orders.map(order => {
       const orderObj = order.toObject();
       const orderDate = new Date(orderObj.orderTime);
@@ -306,7 +319,10 @@ Orderrouter.get('/api/:userId/orders', async (req, res) => {
     res.json({
       orders: transformedOrders,
       totalOrdersCount,
-      totalExpenditure
+      totalExpenditure,
+      monthlyOrderCount,
+      monthlyExpenditure,
+      balance
     });
   } catch (err) {
     console.error(err);
