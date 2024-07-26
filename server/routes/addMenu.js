@@ -15,8 +15,7 @@ menuRouter.post("/api/menu", async (req, res) => {
             availability,
             qty
           };
-        
-
+    
         const newMenuItem = new Menu(menuDetails);
         await newMenuItem.save();
 

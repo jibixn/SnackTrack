@@ -5,7 +5,7 @@ const menuRouter = require('./routes/addMenu')
 const fetchMenuRouter = require('./routes/fetchMenu');
 const OrderRouter = require('./routes/Orders');
 const fetchEmpRouter=require('./routes/EmpList');
-
+require('dotenv').config();
 
 const PORT = process.env.port || 3001;
 const app =express();
@@ -18,7 +18,7 @@ app.use(OrderRouter);
 app.use(fetchEmpRouter);
 
 
-const DB="mongodb+srv://snacktrackfisat:oRGkKdTHJPe9OyuR@snacktrack.ho4irqx.mongodb.net/?retryWrites=true&w=majority&appName=SnackTrack";
+const DB=process.env.Mongo_URI;
 
 mongoose.connect(DB).then(()=>{
     console.log("Conection Successful");
