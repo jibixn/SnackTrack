@@ -400,4 +400,57 @@ Orderrouter.get("/api/pending", async (req, res) => {
   }
 });
 
+
+
+//month-wise orders
+Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
+    }
+
+
+    const ordersByMonth = await Order.aggregate([
+      { $match: { user: new mongoose.Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$orderTime" },
+            month: { $month: "$orderTime" },
+          },
+          orders: { $push: "$$ROOT" },
+          totalOrders: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+
+
+    
+    const currentYear = new Date().getFullYear();
+
+    
+    const allMonths = Array.from({ length: 12 }, (_, i) => ({
+      _id: { year: currentYear, month: i + 1 },
+      orders: [],
+      totalOrders: 0,
+    }));
+
+   
+    const completeOrdersByMonth = allMonths.map(month => {
+      const found = ordersByMonth.find(
+        order => order._id.year === month._id.year && order._id.month === month._id.month
+      );
+      return found || month;
+    });
+   
+
+    res.status(200).json(completeOrdersByMonth);
+  } catch (e) {
+    res.status(500).json({ error: "Server error", details: e.message });
+  }
+});
 module.exports = Orderrouter;
