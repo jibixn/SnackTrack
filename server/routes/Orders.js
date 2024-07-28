@@ -8,17 +8,25 @@ const User = require("../models/User");
 
 Orderrouter.get("/orders", async (req, res) => {
   const userId = req.headers["userid"];
+
   try {
     const user = await User.findOne({ _id: userId });
-
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     const balance = user.balance;
-    const orders = await Order.find({ user: userId }).populate(
-      "items.foodItem",
-      "name price category"
-    );
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); 
+
+    const startDate = new Date(Date.UTC(currentYear, currentMonth, 1));
+    const endDate = new Date(Date.UTC(currentYear, currentMonth + 1, 0, 23, 59, 59, 999));
+
+    const orders = await Order.find({
+      user: userId,
+      orderTime: { $gte: startDate, $lte: endDate }
+    }).populate("items.foodItem", "name price category");
 
     const totalOrdersCount = orders.length;
     const totalExpenditure = orders.reduce(
@@ -34,7 +42,6 @@ Orderrouter.get("/orders", async (req, res) => {
         month: "2-digit",
         year: "2-digit",
       });
-
       return {
         ...orderObj,
         formatDate: format,
@@ -214,6 +221,9 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
   }
 });
 
+
+
+
 //payment
 Orderrouter.put("/api/:userId/Payment", async (req, res) => {
   try {
@@ -234,6 +244,9 @@ Orderrouter.put("/api/:userId/Payment", async (req, res) => {
     res.status(500).json({ message: "ServerError" + e });
   }
 });
+
+
+
 
 //user orders
 Orderrouter.get("/api/:userId/orders", async (req, res) => {
@@ -310,6 +323,11 @@ Orderrouter.get("/api/:userId/orders", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
+
+
+
 
 Orderrouter.post("/api/Addorders", async (req, res) => {
   try {
@@ -404,13 +422,19 @@ Orderrouter.get("/api/pending", async (req, res) => {
 
 //month-wise orders
 Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
+  const userId = req.params.userId;
   try {
-    const userId = req.params.userId;
-
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: "Invalid user ID format" });
     }
 
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const balance = user.balance;
+    
     const ordersByMonth = await Order.aggregate([
       { $match: { user: new mongoose.Types.ObjectId(userId) } },
       {
@@ -427,7 +451,6 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
     ]);
 
     const currentYear = new Date().getFullYear();
-
     const allMonths = Array.from({ length: 12 }, (_, i) => ({
       _id: { year: currentYear, month: i + 1 },
       orders: [],
@@ -441,32 +464,56 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
       return found || month;
     });
 
-    for (let monthData of completeOrdersByMonth) {
-      for (let order of monthData.orders) {
-        order.items = await Promise.all(order.items.map(async (item) => {
-          const foodItem = await Menu.findById(item.foodItem);
-          return {
-            ...item,
-            foodItemName: foodItem ? foodItem.name : "Unknown Item"
-          };
-        }));
+    let totalOrdersCount = 0;
+    let totalExpenditure = 0;
 
-        const orderDate = new Date(order.orderTime);
-        order.formatDate = orderDate.toLocaleDateString("en-GB", {
+    const transformedMonthlyOrders = await Promise.all(completeOrdersByMonth.map(async (monthData) => {
+      const transformedOrders = await Promise.all(monthData.orders.map(async (order) => {
+        const orderObj = order.toObject ? order.toObject() : order;
+        const orderDate = new Date(orderObj.orderTime);
+        const format = orderDate.toLocaleDateString("en-GB", {
           day: "2-digit",
           month: "2-digit",
           year: "2-digit",
         });
-      }
-    }
 
-    res.status(200).json(completeOrdersByMonth);
-  } catch (e) {
-    console.error("Error in monthly-orders route:", e);
-    res.status(500).json({ error: "Server error", details: e.message });
+        const transformedItems = await Promise.all(orderObj.items.map(async (item) => {
+          const foodItem = await Menu.findById(item.foodItem);
+          return {
+            ...item,
+            foodItemName: foodItem ? foodItem.name : "Unknown Item",
+            foodItemCategory: foodItem ? foodItem.category : "Unknown Category",
+            foodItemId: foodItem ? foodItem._id : null,
+            foodItem: undefined,
+          };
+        }));
+
+        totalOrdersCount++;
+        totalExpenditure += orderObj.totalPrice;
+
+        return {
+          ...orderObj,
+          formatDate: format,
+          balance,
+          items: transformedItems,
+        };
+      }));
+
+      return {
+        ...monthData,
+        orders: transformedOrders,
+      };
+    }));
+
+    res.status(200).json({
+      monthlyOrders: transformedMonthlyOrders,
+      totalOrdersCount,
+      totalExpenditure,
+    });
+  } catch (err) {
+    console.error("Error in monthly-orders route:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
-
-
 
 module.exports = Orderrouter;
