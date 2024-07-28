@@ -407,11 +407,9 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: "Invalid user ID format" });
     }
-
 
     const ordersByMonth = await Order.aggregate([
       { $match: { user: new mongoose.Types.ObjectId(userId) } },
@@ -428,29 +426,47 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
       { $sort: { "_id.year": 1, "_id.month": 1 } }
     ]);
 
-
-    
     const currentYear = new Date().getFullYear();
 
-    
     const allMonths = Array.from({ length: 12 }, (_, i) => ({
       _id: { year: currentYear, month: i + 1 },
       orders: [],
       totalOrders: 0,
     }));
 
-   
     const completeOrdersByMonth = allMonths.map(month => {
       const found = ordersByMonth.find(
         order => order._id.year === month._id.year && order._id.month === month._id.month
       );
       return found || month;
     });
-   
+
+    for (let monthData of completeOrdersByMonth) {
+      for (let order of monthData.orders) {
+        order.items = await Promise.all(order.items.map(async (item) => {
+          const foodItem = await Menu.findById(item.foodItem);
+          return {
+            ...item,
+            foodItemName: foodItem ? foodItem.name : "Unknown Item"
+          };
+        }));
+
+        const orderDate = new Date(order.orderTime);
+        order.formatDate = orderDate.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+        });
+      }
+    }
 
     res.status(200).json(completeOrdersByMonth);
   } catch (e) {
+    console.error("Error in monthly-orders route:", e);
     res.status(500).json({ error: "Server error", details: e.message });
   }
 });
+
+
+
 module.exports = Orderrouter;
