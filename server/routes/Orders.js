@@ -434,7 +434,7 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
     }
 
     const balance = user.balance;
-    
+
     const ordersByMonth = await Order.aggregate([
       { $match: { user: new mongoose.Types.ObjectId(userId) } },
       {
@@ -443,7 +443,7 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
             year: { $year: "$orderTime" },
             month: { $month: "$orderTime" },
           },
-          orders: { $push: "$$ROOT" },
+          items: { $push: "$items" },
           totalOrders: { $sum: 1 },
         },
       },
@@ -453,7 +453,7 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
     const currentYear = new Date().getFullYear();
     const allMonths = Array.from({ length: 12 }, (_, i) => ({
       _id: { year: currentYear, month: i + 1 },
-      orders: [],
+      items: [],
       totalOrders: 0,
     }));
 
@@ -468,40 +468,23 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
     let totalExpenditure = 0;
 
     const transformedMonthlyOrders = await Promise.all(completeOrdersByMonth.map(async (monthData) => {
-      const transformedOrders = await Promise.all(monthData.orders.map(async (order) => {
-        const orderObj = order.toObject ? order.toObject() : order;
-        const orderDate = new Date(orderObj.orderTime);
-        const format = orderDate.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "2-digit",
-        });
-
-        const transformedItems = await Promise.all(orderObj.items.map(async (item) => {
-          const foodItem = await Menu.findById(item.foodItem);
-          return {
-            ...item,
-            foodItemName: foodItem ? foodItem.name : "Unknown Item",
-            foodItemCategory: foodItem ? foodItem.category : "Unknown Category",
-            foodItemId: foodItem ? foodItem._id : null,
-            foodItem: undefined,
-          };
-        }));
-
+      const transformedItems = await Promise.all(monthData.items.flat().map(async (item) => {
+        const foodItem = await Menu.findById(item.foodItem);
         totalOrdersCount++;
-        totalExpenditure += orderObj.totalPrice;
-
+        totalExpenditure += item.price * item.quantity;
         return {
-          ...orderObj,
-          formatDate: format,
-          balance,
-          items: transformedItems,
+          ...item,
+          foodItemName: foodItem ? foodItem.name : "Unknown Item",
+          foodItemCategory: foodItem ? foodItem.category : "Unknown Category",
+          foodItemId: foodItem ? foodItem._id : null,
+          foodItem: undefined,
         };
       }));
 
       return {
-        ...monthData,
-        orders: transformedOrders,
+        _id: monthData._id,
+        items: transformedItems,
+        totalOrders: monthData.totalOrders,
       };
     }));
 
@@ -509,11 +492,11 @@ Orderrouter.get("/api/:userId/monthly-orders", async (req, res) => {
       monthlyOrders: transformedMonthlyOrders,
       totalOrdersCount,
       totalExpenditure,
+      balance,
     });
   } catch (err) {
     console.error("Error in monthly-orders route:", err);
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
-
 module.exports = Orderrouter;
