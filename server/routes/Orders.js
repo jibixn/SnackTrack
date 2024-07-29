@@ -169,8 +169,10 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
           });
         }
 
+        order.status="edited";
         order.items = updatedItems;
         order.totalPrice = totalPrice;
+        await order.save();
       }
 
       await order.save();
