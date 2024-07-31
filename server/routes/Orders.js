@@ -148,6 +148,33 @@ Orderrouter.get("/api/recentOrders", async (req, res) => {
   }
 });
 
+
+//confirm-order
+Orderrouter.put("/api/confirm-order/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId).populate("user", "-password");
+    const user = order.user;
+
+    if(order.status==="edited"){
+      order.status="tchrconfirmed";
+      await order.save();
+      res.status(200).json({ message: "Order confirmed by faculty successfully" });
+
+
+    }else{
+      res.status(200).json({ message: "Only edited Orders can be confirmed" });
+
+    }
+    
+  } catch (err) {
+    console.error("Error updating order:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+
+});
+
+
 // update order
 Orderrouter.put("/api/orders/:orderId", async (req, res) => {
   try {
@@ -199,14 +226,22 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       }
 
       await order.save();
-    } else if (action === "confirm") {
+    
+    } else if (order.status!=="edited" && action === "confirm") {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
       order.status = "confirmed";
       await order.save();
-    } else {
+    } 
+    else if(order.status==="tchrconfirmed" && action === "confirm"){
+      order.status = "confirmed";
+      await order.save();
+
+
+    }
+    else {
       res
         .status(400)
         .json({ error: 'Invalid action. Use "edit" or "confirm".' });
