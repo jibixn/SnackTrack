@@ -137,7 +137,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    if (order.status !== "pending") {
+    if (order.status !== "pending" || order.status!=="edited") {
       return res
         .status(400)
         .json({ error: "Only pending orders can be edited or confirmed" });
