@@ -69,6 +69,29 @@ Orderrouter.get("/orders", async (req, res) => {
   }
 });
 
+
+
+
+
+//clear
+Orderrouter.delete("/api/clear-all-orders", async (req, res) => {
+  try {
+    const result = await Order.deleteMany({});
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "No orders found to delete" });
+    }
+
+    res.status(200).json({ 
+      message: "All orders have been successfully deleted",
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error("Error clearing orders:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+});
+
 Orderrouter.get("/api/recentOrders", async (req, res) => {
   try {
     const today = new Date();
