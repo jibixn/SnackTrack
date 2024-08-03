@@ -195,6 +195,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
     const { action, items, isPaying, amt } = req.body;
+
     const order = await Order.findById(orderId).populate("user", "-password");
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
@@ -202,136 +203,117 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
     if (!order.user) {
       return res.status(404).json({ error: "User associated with order not found" });
     }
+
     const user = order.user;
 
-    if (order.status !== "pending" && order.status!=="edited" && order.status !== "tchrConfirmed") {
-      return res
-        .status(400)
-        .json({ error: "Only pending orders can be edited or confirmed" });
+    if (!["pending", "edited", "tchrConfirmed"].includes(order.status)) {
+      return res.status(400).json({ error: "Only pending, edited, or teacher-confirmed orders can be modified" });
     }
 
     if (action === "edit") {
-      if (items && Array.isArray(items)) {
-        const updatedItems = [];
-        let totalPrice = 0;
+      if (!items || !Array.isArray(items)) {
+        return res.status(400).json({ error: "Invalid items data" });
+      }
 
-        for (let item of items) {
-          const foodItem = await Menu.findById(item.foodItemId);
-          if (!foodItem) {
-            return res
-              .status(400)
-              .json({ error: `Food item not found: ${item.foodItemId}` });
-          }
+      const updatedItems = [];
+      let totalPrice = 0;
 
-          const itemPrice = item.price || foodItem.price;
-          const itemTotal = itemPrice * item.quantity;
-          totalPrice += itemTotal;
-
-          updatedItems.push({
-            foodItem: item.foodItemId,
-            quantity: item.quantity,
-            price: itemPrice,
-            foodItemName: foodItem.name,
-            foodItemCategory: foodItem.category,
-          });
+      for (let item of items) {
+        const foodItem = await Menu.findById(item.foodItemId);
+        if (!foodItem) {
+          return res.status(400).json({ error: `Food item not found: ${item.foodItemId}` });
         }
 
-        order.status="edited";
-        order.items = updatedItems;
-        order.totalPrice = totalPrice;
+        const itemPrice = item.price || foodItem.price;
+        const itemTotal = itemPrice * item.quantity;
+        totalPrice += itemTotal;
+
+        updatedItems.push({
+          foodItem: item.foodItemId,
+          quantity: item.quantity,
+          price: itemPrice,
+          foodItemName: foodItem.name,
+          foodItemCategory: foodItem.category,
+        });
+      }
+
+      order.status = "edited";
+      order.items = updatedItems;
+      order.totalPrice = totalPrice;
+      await order.save();
+
+      await sendNotification(user.fcmtoken, "Order Edited", "Your order has been edited. Please review the changes.");
+
+    } else if (action === "confirm") {
+      if (order.status === "edited" || order.status === "tchrConfirmed") {
+        order.status = "confirmed";
         await order.save();
-      }
-      
-      await order.save();
-
-      const message ={
-        notification:{
-          title:"Order Edited",
-          body:"Your Order has been edited. Please review the changes."
-        },
-        token:user.fcmtoken,
-      };
-
-      admin.messaging().send(message)
-      .then((response) => {
-        console.log("Successfully sent message:", response);
-      })
-      .catch((error) => {
-        console.error("Error sending message:", error);
-      });
-    
-    } else if (order.status!=="edited" && action === "confirm") {
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      } else {
+        return res.status(400).json({ error: "Order must be in 'edited' or 'tchrConfirmed' status to confirm" });
       }
 
-      order.status = "confirmed";
-      await order.save();
-      
-    } 
-    else if(order.status==="tchrconfirmed" && action === "confirm"){
-      order.status = "confirmed";
-      await order.save();
-
-
-    }
-    else {
-      res
-        .status(400)
-        .json({ error: 'Invalid action. Use "edit" or "confirm".' });
+    } else {
+      return res.status(400).json({ error: 'Invalid action. Use "edit" or "confirm".' });
     }
 
     if (isPaying) {
-      if (amt == order.totalPrice) {
-        order.status = "Paid";
-        await order.save();
-      } else if (amt < order.totalPrice) {
-        let amountPending = order.totalPrice - amt;
-        user.balance += amountPending;
-      } else if (amt > order.totalPrice) {
-        user.balance -= amt;
-        await user.save();
-        order.status = "Paid";
-        await order.save();
+      if (typeof amt !== 'number' || isNaN(amt)) {
+        return res.status(400).json({ error: "Invalid payment amount" });
       }
 
-      await user.save();
-      order.status = "Paid";
-      await order.save();
+      if (amt === order.totalPrice) {
+        order.status = "Paid";
+      } else if (amt < order.totalPrice) {
+        const amountPending = order.totalPrice - amt;
+        user.balance += amountPending;
+        order.status = "PartiallyPaid";
+      } else {
+        const excess = amt - order.totalPrice;
+        user.balance += excess;
+        order.status = "Paid";
+      }
     } else {
       user.balance += order.totalPrice;
-      await user.save();
+      order.status = "Unpaid";
+    }
+
+    await user.save();
+    await order.save();
+
+    if (action !== "edit") {
+      const notificationBody = isPaying
+        ? `Your order has been confirmed. Payment of Rs.${amt} has been processed.`
+        : "Your order has been confirmed.";
+      await sendNotification(user.fcmtoken, "Order Confirmed ✅", notificationBody);
     }
 
     res.json({
-      message: `Order ${
-        action === "edit" ? "updated" : "confirmed"
-      } successfully${isPaying ? " and paid" : ""}`,
+      message: `Order ${action === "edit" ? "updated" : "confirmed"} successfully${isPaying ? " and payment processed" : ""}`,
       order,
     });
 
-   if(action!=="edit"){
-    const message ={
-      Notification:{
-        title:"Order Confirmed ✅",
-        body:`Your order has been Confirmed. ${isPaying? 'Payment os Rs.${amt} has been processed':""}`,
-      },
-      token:user.fcmtoken,
-    };
-
-    admin.messaging().send(message)
-    .then((response) => {
-      console.log("Successfully sent message:", response);
-    })
-    .catch((error) => {
-      console.error("Error sending message:", error);
-    });
-   }
   } catch (err) {
     console.error("Error updating order:", err);
-    res.status(500).json({ error: "Server error" + err });
+    res.status(500).json({ error: "Server error: " + err.message });
   }
 });
+
+
+
+
+async function sendNotification(token, title, body) {
+  const message = {
+    notification: { title, body },
+    token,
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("Successfully sent message:", response);
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+}
 
 
 
