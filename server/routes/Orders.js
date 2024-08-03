@@ -16,6 +16,11 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+
+// admin.app().options.credential.getAccessToken()
+//   .then(() => console.log('Firebase Admin SDK initialized successfully'))
+//   .catch((error) => console.error('Failed to initialize Firebase Admin SDK:', error));
+
 Orderrouter.get("/orders", async (req, res) => {
   const userId = req.headers["userid"];
 
@@ -191,11 +196,13 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
     const { orderId } = req.params;
     const { action, items, isPaying, amt } = req.body;
     const order = await Order.findById(orderId).populate("user", "-password");
-    const user = order.user;
-
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
+    if (!order.user) {
+      return res.status(404).json({ error: "User associated with order not found" });
+    }
+    const user = order.user;
 
     if (order.status !== "pending" && order.status!=="edited" && order.status !== "tchrConfirmed") {
       return res
@@ -238,7 +245,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       await order.save();
 
       const message ={
-        Notification:{
+        notification:{
           title:"Order Edited",
           body:"Your Order has been edited. Please review the changes."
         },
