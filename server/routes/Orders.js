@@ -264,11 +264,51 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
 
       order.status = "confirmed";
       await order.save();
+      if (isPaying) {
+
+        if (amt === order.totalPrice) {
+          order.status = "Paid";
+        } else if (amt < order.totalPrice) {
+          let amountPending = order.totalPrice - amt;
+          user.balance += amountPending;
+        } else if (amt > order.totalPrice) {
+          let excess = amt - order.totalPrice;
+          user.balance += excess;
+          order.status = "Paid";
+        }
+  
+        await user.save();
+        order.status = "Paid";
+        await order.save();
+      } else {
+        user.balance += order.totalPrice;
+        await user.save();
+      }
       
     } 
     else if(order.status==="tchrconfirmed" && action === "confirm"){
       order.status = "confirmed";
       await order.save();
+      if (isPaying) {
+
+        if (amt === order.totalPrice) {
+          order.status = "Paid";
+        } else if (amt < order.totalPrice) {
+          let amountPending = order.totalPrice - amt;
+          user.balance += amountPending;
+        } else if (amt > order.totalPrice) {
+          let excess = amt - order.totalPrice;
+          user.balance += excess;
+          order.status = "Paid";
+        }
+  
+        await user.save();
+        order.status = "Paid";
+        await order.save();
+      } else {
+        user.balance += order.totalPrice;
+        await user.save();
+      }
 
 
     }
@@ -278,26 +318,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
         .json({ error: 'Invalid action. Use "edit" or "confirm".' });
     }
 
-    if (isPaying) {
-
-      if (amt === order.totalPrice) {
-        order.status = "Paid";
-      } else if (amt < order.totalPrice) {
-        let amountPending = order.totalPrice - amt;
-        user.balance += amountPending;
-      } else if (amt > order.totalPrice) {
-        let excess = amt - order.totalPrice;
-        user.balance += excess;
-        order.status = "Paid";
-      }
-
-      await user.save();
-      order.status = "Paid";
-      await order.save();
-    } else {
-      user.balance += order.totalPrice;
-      await user.save();
-    }
+   
 
     res.json({
       message: `Order ${
