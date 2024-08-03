@@ -273,7 +273,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
           user.balance += amountPending;
         } else if (amt > order.totalPrice) {
           let excess = amt - order.totalPrice;
-          user.balance += excess;
+          user.balance -= excess;
           order.status = "Paid";
         }
   
@@ -298,7 +298,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
           user.balance += amountPending;
         } else if (amt > order.totalPrice) {
           let excess = amt - order.totalPrice;
-          user.balance += excess;
+          user.balance -= excess;
           order.status = "Paid";
         }
   
