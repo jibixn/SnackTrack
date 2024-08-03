@@ -187,7 +187,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    if (order.status !== "pending" && order.status!=="edited") {
+    if (order.status !== "pending" && order.status!=="edited" && order.status !== "tchrConfirmed") {
       return res
         .status(400)
         .json({ error: "Only pending orders can be edited or confirmed" });
@@ -277,7 +277,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
     });
   } catch (err) {
     console.error("Error updating order:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" + err });
   }
 });
 
