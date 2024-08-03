@@ -458,6 +458,7 @@ Orderrouter.post("/api/Addorders", async (req, res) => {
   try {
     const { items } = req.body;
     const userId = req.headers["userid"];
+    const user = await User.findOne({ _id: userId });
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Invalid order items" });
@@ -484,6 +485,22 @@ Orderrouter.post("/api/Addorders", async (req, res) => {
       });
     }
 
+    const message ={
+      Notification:{
+        title:"New Order",
+        body:`${user.name} has placed a new order`,
+      },
+      token:user.fcmtoken,
+    };
+
+    admin.messaging().send(message)
+    .then((response) => {
+      console.log("Successfully sent message:", response);
+    })
+    .catch((error) => {
+      console.error("Error sending message:", error);
+    });
+   
     const newOrder = new Order({
       user: userId,
       items: orderItems,
