@@ -275,12 +275,9 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       
         if (amt >= order.totalPrice) {
           order.status = "Paid";
-        } else {
-          order.status = "PartiallyPaid";
         }
       } else {
         user.balance += order.totalPrice;
-        order.status = "Unpaid";
       }
       
       await user.save();
@@ -301,12 +298,9 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       
         if (amt >= order.totalPrice) {
           order.status = "Paid";
-        } else {
-          order.status = "PartiallyPaid";
-        }
+        } 
       } else {
         user.balance += order.totalPrice;
-        order.status = "Unpaid";
       }
       
       await user.save();
