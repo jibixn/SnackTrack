@@ -4,10 +4,12 @@ const Orderrouter = express.Router();
 const Order = require("../models/order");
 const Menu = require("../models/menu");
 const User = require("../models/User");
+require('dotenv').config();
+
 
 
 const admin = require('firebase-admin');
-const serviceAccount = require('../google-services.json');
+const serviceAccount = JSON.parse(process.env.FIREBASE_ACCOUNT);
 
 
 admin.initializeApp({
@@ -258,6 +260,7 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
 
       order.status = "confirmed";
       await order.save();
+      
     } 
     else if(order.status==="tchrconfirmed" && action === "confirm"){
       order.status = "confirmed";
@@ -299,6 +302,24 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       } successfully${isPaying ? " and paid" : ""}`,
       order,
     });
+
+   if(action!=="edit"){
+    const message ={
+      Notification:{
+        title:"Order Confirmed ✅",
+        body:`Your order has been Confirmed. ${isPaying? 'Payment os Rs.${amt} has been processed':""}`,
+      },
+      token:user.fcmtoken,
+    };
+
+    admin.messaging().send(message)
+    .then((response) => {
+      console.log("Successfully sent message:", response);
+    })
+    .catch((error) => {
+      console.error("Error sending message:", error);
+    });
+   }
   } catch (err) {
     console.error("Error updating order:", err);
     res.status(500).json({ error: "Server error" + err });
