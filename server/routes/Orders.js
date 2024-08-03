@@ -157,7 +157,7 @@ Orderrouter.put("/api/confirm-order/:orderId", async (req, res) => {
     const user = order.user;
 
     if(order.status==="edited"){
-      order.status="tchrconfirmed";
+      order.status="tchrConfirmed";
       await order.save();
       res.status(200).json({ message: "Order confirmed by faculty successfully" });
 
@@ -478,6 +478,16 @@ Orderrouter.get("/api/pending", async (req, res) => {
   }
 });
 
+
+Orderrouter.get("/api/allorders",async(req,res)=>{
+  try{
+    const orders = await Order.find();
+    res.status(200).json({orders:orders});
+
+  }catch(e){
+    res.status(500).json({error:"Server error"});
+  }
+});
 
 
 //month-wise orders
