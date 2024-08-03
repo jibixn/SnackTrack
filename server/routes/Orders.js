@@ -1,10 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
-
 const Orderrouter = express.Router();
 const Order = require("../models/order");
 const Menu = require("../models/menu");
 const User = require("../models/User");
+
+
+const admin = require('firebase-admin');
+const serviceAccount = require('../google-services.json');
+
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 Orderrouter.get("/orders", async (req, res) => {
   const userId = req.headers["userid"];
@@ -224,8 +232,24 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
         order.totalPrice = totalPrice;
         await order.save();
       }
-
+      
       await order.save();
+
+      const message ={
+        Notification:{
+          title:"Order Edited",
+          body:"Your Order has been edited. Please review the changes."
+        },
+        token:user.fcmtoken,
+      };
+
+      admin.messaging().send(message)
+      .then((response) => {
+        console.log("Successfully sent message:", response);
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
+      });
     
     } else if (order.status!=="edited" && action === "confirm") {
       if (!user) {
