@@ -263,52 +263,54 @@ Orderrouter.put("/api/orders/:orderId", async (req, res) => {
       }
 
       order.status = "confirmed";
-      await order.save();
       if (isPaying) {
+        console.log("amt", amt);
 
-        if (amt === order.totalPrice) {
-          order.status = "Paid";
-        } else if (amt < order.totalPrice) {
-          let amountPending = order.totalPrice - amt;
-          user.balance += amountPending;
-        } else if (amt > order.totalPrice) {
-          let excess = amt - order.totalPrice;
-          user.balance -= excess;
-          order.status = "Paid";
+        if (typeof amt !== 'number' || isNaN(amt)) {
+          return res.status(400).json({ error: "Invalid payment amount" });
         }
-  
-        await user.save();
-        order.status = "Paid";
-        await order.save();
+      
+        const newBalance = user.balance + order.totalPrice - amt;
+        user.balance = newBalance;
+      
+        if (amt >= order.totalPrice) {
+          order.status = "Paid";
+        } else {
+          order.status = "PartiallyPaid";
+        }
       } else {
         user.balance += order.totalPrice;
-        await user.save();
+        order.status = "Unpaid";
       }
+      
+      await user.save();
+      await order.save();
       
     } 
     else if(order.status==="tchrconfirmed" && action === "confirm"){
       order.status = "confirmed";
       await order.save();
       if (isPaying) {
-
-        if (amt === order.totalPrice) {
-          order.status = "Paid";
-        } else if (amt < order.totalPrice) {
-          let amountPending = order.totalPrice - amt;
-          user.balance += amountPending;
-        } else if (amt > order.totalPrice) {
-          let excess = amt - order.totalPrice;
-          user.balance -= excess;
-          order.status = "Paid";
+        console.log("tchr amt", amt);
+        if (typeof amt !== 'number' || isNaN(amt)) {
+          return res.status(400).json({ error: "Invalid payment amount" });
         }
-  
-        await user.save();
-        order.status = "Paid";
-        await order.save();
+      
+        const newBalance = user.balance + order.totalPrice - amt;
+        user.balance = newBalance; 
+      
+        if (amt >= order.totalPrice) {
+          order.status = "Paid";
+        } else {
+          order.status = "PartiallyPaid";
+        }
       } else {
         user.balance += order.totalPrice;
-        await user.save();
+        order.status = "Unpaid";
       }
+      
+      await user.save();
+      await order.save();
 
 
     }
