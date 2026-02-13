@@ -1,9 +1,9 @@
 
-#SnackTrack
+# SnackTrack
 
 SnackTrack is a cross-platform Flutter application designed to track meals efficiently. Built with a single Flutter codebase, the app supports ios and android devices. Please refer the branches.
 
-##Features
+## Features
 
 Cross-platform support (Android, iOS)
 
@@ -13,7 +13,7 @@ Modular and scalable structure
 
 Test directory included
 
-##Prerequisites
+## Prerequisites
 
 Ensure the following tools are installed:
 
@@ -29,7 +29,7 @@ Verify your environment:
 
 flutter doctor
 
-##Installation
+## Installation
 
 Clone the repository:
 
@@ -37,7 +37,7 @@ git clone https://github.com/jibixn/SnackTrack.git
 cd SnackTrack
 
 
-##Install dependencies:
+## Install dependencies:
 
 flutter pub get
 
@@ -53,10 +53,11 @@ flutter run -d macos
 flutter run -d windows
 flutter run -d linux
 
-##Testing
+## Testing
 
 Run all unit and widget tests:
 
 flutter test
+
 
 
