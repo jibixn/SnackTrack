@@ -1,16 +1,63 @@
-# main
 
-A new Flutter project.
+SnackTrack
 
-## Getting Started
+SnackTrack is a cross-platform Flutter application designed to track meals efficiently. Built with a single Flutter codebase, the app supports ios and android devices.
 
-This project is a starting point for a Flutter application.
+Features
 
-A few resources to get you started if this is your first Flutter project:
+Cross-platform support (Android, iOS)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Single Flutter codebase
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Modular and scalable structure
+
+Test directory included
+
+Ready for backend and database integration
+
+Prerequisites
+
+Ensure the following tools are installed:
+
+Flutter SDK (stable channel)
+
+Dart SDK (included with Flutter)
+
+Android Studio, VS Code, or another compatible IDE
+
+Platform-specific tooling (Xcode for iOS/macOS, etc.)
+
+Verify your environment:
+
+flutter doctor
+
+Installation
+
+Clone the repository:
+
+git clone https://github.com/jibixn/SnackTrack.git
+cd SnackTrack
+
+
+Install dependencies:
+
+flutter pub get
+
+Running the Application
+Mobile (Android / iOS)
+flutter run
+
+Web
+flutter run -d chrome
+
+Desktop
+flutter run -d macos
+flutter run -d windows
+flutter run -d linux
+
+Testing
+
+Run all unit and widget tests:
+
+flutter test
+
