@@ -41,23 +41,16 @@ cd SnackTrack
 
 flutter pub get
 
-Running the Application
-Mobile (Android / iOS)
+## Running the Application
+**Mobile (Android / iOS)**
 flutter run
-
-Web
-flutter run -d chrome
-
-Desktop
-flutter run -d macos
-flutter run -d windows
-flutter run -d linux
 
 ## Testing
 
 Run all unit and widget tests:
 
 flutter test
+
 
 
 
